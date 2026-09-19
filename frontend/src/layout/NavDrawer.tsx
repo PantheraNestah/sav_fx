@@ -1,8 +1,8 @@
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
-  Award,
   ChevronRight,
+  Gift,
   HelpCircle,
   History,
   Home,
@@ -11,13 +11,15 @@ import {
   Moon,
   Settings,
   Shield,
+  Sun,
   Users,
   X,
 } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
-import { Link } from 'react-router-dom'
-import { useAccount } from '../context/AccountContext'
-import { useUi } from '../context/UiContext'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAccount } from '../context/useAccount'
+import { useTheme } from '../context/useTheme'
+import { useUi } from '../context/useUi'
 
 interface Props {
   open: boolean
@@ -32,10 +34,18 @@ const settingsLinks = [
 ]
 
 export function NavDrawer({ open, onClose }: Props) {
-  const { user } = useAccount()
+  const navigate = useNavigate()
+  const { user, logout } = useAccount()
   const { openModal, openChat } = useUi()
+  const { theme, toggleTheme } = useTheme()
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [darkTheme, setDarkTheme] = useState(true)
+  const darkTheme = theme === 'dark'
+
+  const handleLogout = () => {
+    logout()
+    onClose()
+    navigate('/login')
+  }
 
   return (
     <>
@@ -107,17 +117,17 @@ export function NavDrawer({ open, onClose }: Props) {
             onClick={onClose}
           />
           <DrawerItem icon={<Users size={18} />} label="Copy Trading" to="/copy-trading" onClick={onClose} />
-          <DrawerItem icon={<Award size={18} />} label="Refer & Earn" to="/refer" onClick={onClose} accent />
+          <DrawerItem icon={<Gift size={18} />} label="Refer & Earn" to="/refer" onClick={onClose} color="text-violet-400" />
 
           <div className="my-2 border-t border-line" />
 
           <div className="flex items-center justify-between rounded-lg px-3 py-3 text-sm">
             <span className="flex items-center gap-3">
-              <Moon size={18} className="text-muted" />
-              Dark Theme
+              {darkTheme ? <Moon size={18} className="text-muted" /> : <Sun size={18} className="text-muted" />}
+              {darkTheme ? 'Dark Theme' : 'Light Theme'}
             </span>
             <button
-              onClick={() => setDarkTheme((v) => !v)}
+              onClick={toggleTheme}
               className={`h-6 w-11 rounded-full transition-colors ${darkTheme ? 'bg-teal' : 'bg-line'}`}
             >
               <span
@@ -128,12 +138,12 @@ export function NavDrawer({ open, onClose }: Props) {
             </button>
           </div>
 
-          <DrawerItem icon={<HelpCircle size={18} />} label="Help Centre" to="/help" onClick={onClose} />
+          <DrawerItem icon={<HelpCircle size={18} />} label="Help Centre" onSelect={openChat} onClick={onClose} />
           <DrawerItem icon={<Shield size={18} />} label="Responsible Trading" to="/responsible-trading" onClick={onClose} />
           <DrawerItem icon={<MessageCircle size={18} />} label="Live Chat" onSelect={openChat} onClick={onClose} />
 
           <div className="my-2 border-t border-line" />
-          <DrawerItem icon={<LogOut size={18} />} label="Logout" onClick={onClose} danger />
+          <DrawerItem icon={<LogOut size={18} />} label="Logout" onClick={handleLogout} danger />
         </nav>
       </aside>
     </>
@@ -146,7 +156,7 @@ function DrawerItem({
   to,
   onSelect,
   onClick,
-  accent,
+  color,
   danger,
 }: {
   icon: ReactNode
@@ -154,15 +164,15 @@ function DrawerItem({
   to?: string
   onSelect?: () => void
   onClick?: () => void
-  accent?: boolean
+  color?: string
   danger?: boolean
 }) {
   const cls = `flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm hover:bg-panel-light ${
-    danger ? 'text-red' : accent ? 'text-teal' : ''
+    danger ? 'text-red' : (color ?? '')
   }`
   const content = (
     <>
-      <span className={danger ? 'text-red' : accent ? 'text-teal' : 'text-muted'}>{icon}</span>
+      <span className={danger ? 'text-red' : (color ?? 'text-muted')}>{icon}</span>
       {label}
     </>
   )
