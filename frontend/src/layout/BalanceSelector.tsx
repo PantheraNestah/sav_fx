@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ChevronDown, X } from 'lucide-react'
-import { useAccount } from '../context/AccountContext'
+import { useAccount } from '../context/useAccount'
 
 export function BalanceSelector() {
   const [open, setOpen] = useState(false)

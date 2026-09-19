@@ -23,7 +23,7 @@ export function SymbolSelector({
     <div className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full min-w-0 items-center gap-2 rounded-lg border border-line bg-panel px-3 py-2 text-left hover:border-teal/50 sm:gap-3"
+        className="flex max-w-full items-center gap-2 rounded-lg border border-line bg-panel px-3 py-2 text-left hover:border-teal/50 sm:gap-3"
       >
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-teal/15 text-teal">
           <LineChart size={17} />

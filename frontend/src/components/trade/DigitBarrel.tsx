@@ -5,7 +5,7 @@ export function DigitBarrel({ stats, lastDigit }: { stats: DigitStat[]; lastDigi
   const min = Math.min(...stats.map((s) => s.pct))
 
   return (
-    <div className="flex items-start justify-between gap-1 overflow-x-auto px-2 pb-1 sm:gap-2 sm:px-4">
+    <div className="flex items-start justify-center gap-2 overflow-x-auto px-2 pb-1 sm:gap-3 sm:px-4">
       {stats.map((s) => {
         const isMax = s.pct === max
         const isMin = s.pct === min
