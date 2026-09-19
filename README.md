@@ -39,6 +39,14 @@ python3 -m venv .venv
 
 Serves at http://localhost:8000 (interactive docs at `/docs`).
 
+## Backend implementation plan
+
+`backend/` is currently a scaffold (in-memory state, three endpoints). The full plan for turning
+it into a real backend — data model, synthetic price engine, settlement logic, auto-trade engine,
+copy trading, and exactly which third-party integrations (payments, KYC, email) would be needed
+and why they're out of scope for this demo — is documented in
+[`docs/BACKEND_PLAN.md`](docs/BACKEND_PLAN.md).
+
 ## Connecting them
 
 The frontend currently simulates everything client-side so it runs standalone. To wire it to the
