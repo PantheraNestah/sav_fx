@@ -65,10 +65,13 @@ export default function TradePage() {
       </div>
 
       {/* Mobile Bottom Navigation Switcher */}
-      <nav className="flex shrink-0 border-t border-line bg-bg xl:hidden">
+      <nav
+        className="flex shrink-0 border-t border-line bg-panel xl:hidden shadow-lg"
+        style={{ paddingBottom: 'calc(0.35rem + env(safe-area-inset-bottom, 0px))' }}
+      >
         <button
           onClick={() => setMobileView('trade')}
-          className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-xs font-semibold transition ${
+          className={`flex flex-1 flex-col items-center justify-center gap-1 py-2 text-xs font-semibold transition active:opacity-75 ${
             mobileView === 'trade' ? 'text-teal border-t-2 border-teal' : 'text-muted'
           }`}
         >

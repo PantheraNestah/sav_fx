@@ -75,7 +75,10 @@ export function NavDrawer({ open, onClose }: Props) {
           </button>
         </div>
 
-        <nav className="flex-1 p-2">
+        <nav
+          className="flex-1 p-2"
+          style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
+        >
           <DrawerItem icon={<Home size={18} />} label="Trader's Hub" to="/trade" onClick={onClose} />
 
           <button

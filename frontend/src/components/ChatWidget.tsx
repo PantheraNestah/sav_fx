@@ -24,14 +24,16 @@ export function ChatWidget({ open, onClose }: { open: boolean; onClose: () => vo
   }
 
   return (
-    <div
-      className={`fixed bottom-4 right-4 z-50 flex flex-col overflow-hidden rounded-2xl border border-blue-400/30 bg-panel shadow-2xl transition-all ${
-        expanded
-          ? 'h-[580px] w-[460px] max-w-[calc(100vw-2rem)]'
-          : 'h-[440px] w-[360px] max-w-[calc(100vw-2rem)]'
-      }`}
-    >
-      <div className="flex items-center justify-between bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-3">
+    <>
+      <div className="fixed inset-0 z-50 bg-black/50 sm:hidden" onClick={onClose} />
+      <div
+        className={`fixed z-50 flex flex-col overflow-hidden rounded-2xl border border-blue-400/30 bg-panel shadow-2xl transition-all inset-x-3 bottom-[calc(4.25rem+env(safe-area-inset-bottom,0px))] max-h-[80dvh] sm:bottom-4 sm:right-4 sm:left-auto sm:inset-x-auto sm:max-h-none ${
+          expanded
+            ? 'h-[580px] w-full sm:w-[460px] sm:max-w-[calc(100vw-2rem)]'
+            : 'h-[440px] w-full sm:w-[360px] sm:max-w-[calc(100vw-2rem)]'
+        }`}
+      >
+        <div className="flex items-center justify-between bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-3">
         <span className="flex items-center gap-2.5">
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
             <MessageCircle size={16} className="text-white" />
@@ -100,5 +102,6 @@ export function ChatWidget({ open, onClose }: { open: boolean; onClose: () => vo
         </button>
       </form>
     </div>
+    </>
   )
 }

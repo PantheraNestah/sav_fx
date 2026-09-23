@@ -43,7 +43,10 @@ export function ReferEarnPage() {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+      <div
+        className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-8"
+        style={{ paddingBottom: 'calc(2.5rem + env(safe-area-inset-bottom, 0px))' }}
+      >
         <Link
           to="/trade"
           className="mb-6 inline-flex items-center gap-2 rounded-xl border border-line px-4 py-2 text-xs font-semibold hover:border-teal/50"
@@ -68,7 +71,7 @@ export function ReferEarnPage() {
             <input
               readOnly
               value={link}
-              className="flex-1 rounded-xl border border-line bg-panel-light px-3 py-2.5 text-xs font-mono text-muted outline-none"
+              className="flex-1 rounded-xl border border-line bg-panel-light px-3 py-2.5 text-xs font-mono text-muted outline-none truncate"
             />
             <button
               onClick={copy}

@@ -26,7 +26,7 @@ export function BalanceSelector() {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 z-50 mt-2 w-72 rounded-xl border border-line bg-panel p-4 shadow-xl">
+          <div className="fixed inset-x-3 top-16 z-50 rounded-xl border border-line bg-panel p-4 shadow-xl sm:absolute sm:inset-x-auto sm:top-full sm:right-0 sm:mt-2 sm:w-72 max-w-[calc(100vw-1.5rem)]">
             <div className="mb-3 flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted">Trading account</p>

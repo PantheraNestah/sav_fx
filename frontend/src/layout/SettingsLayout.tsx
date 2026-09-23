@@ -14,7 +14,10 @@ export function SettingsLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
+      <div
+        className="mx-auto max-w-4xl px-4 py-6 sm:px-6"
+        style={{ paddingBottom: 'calc(2.5rem + env(safe-area-inset-bottom, 0px))' }}
+      >
         <div className="mb-6 flex flex-wrap items-center gap-4">
           <Link
             to="/trade"
@@ -35,7 +38,7 @@ export function SettingsLayout({ children }: { children: ReactNode }) {
         <div className="flex flex-col gap-6 sm:flex-row">
           <aside className="shrink-0 rounded-xl border border-line bg-panel p-3 sm:w-64">
             <p className="mb-2 px-2 text-xs font-semibold uppercase tracking-wide text-muted">Account Center</p>
-            <nav className="flex flex-row gap-1 overflow-x-auto sm:flex-col sm:overflow-visible">
+            <nav className="flex flex-row gap-1 overflow-x-auto no-scrollbar pb-1 sm:pb-0 sm:flex-col sm:overflow-visible">
               {NAV.map((item) => {
                 const active = pathname === item.to
                 const Icon = item.icon

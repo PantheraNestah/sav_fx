@@ -798,3 +798,12 @@ html[data-theme='light'] .forgot-footer button {
     gap: 10px;
   }
 }
+
+/* Mobile-friendly scrollbar suppression utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

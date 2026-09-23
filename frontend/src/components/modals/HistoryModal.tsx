@@ -16,12 +16,12 @@ export function HistoryModal({ onClose }: { onClose: () => void }) {
   })
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl border border-line bg-panel p-6 shadow-2xl">
-        <div className="flex items-center justify-between border-b border-line pb-4">
+      <div className="relative flex max-h-[85dvh] w-full max-w-lg flex-col rounded-2xl border border-line bg-panel p-4 sm:p-6 shadow-2xl">
+        <div className="flex items-center justify-between border-b border-line pb-3 sm:pb-4">
           <div>
-            <h2 className="text-lg font-bold">Transaction History</h2>
+            <h2 className="text-base sm:text-lg font-bold">Transaction History</h2>
             <p className="text-xs text-muted">Complete audit ledger of deposits, payouts, and trades</p>
           </div>
           <button onClick={onClose} className="rounded-lg p-1 text-muted hover:text-text">
@@ -29,12 +29,12 @@ export function HistoryModal({ onClose }: { onClose: () => void }) {
           </button>
         </div>
 
-        <div className="my-3 flex gap-2 border-b border-line pb-2 text-xs font-semibold">
+        <div className="my-3 flex gap-2 border-b border-line pb-2 text-xs font-semibold overflow-x-auto no-scrollbar">
           {(['all', 'deposits', 'withdrawals', 'trades'] as Tab[]).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`rounded-lg px-3 py-1.5 capitalize transition ${
+              className={`rounded-lg px-3 py-1.5 capitalize shrink-0 transition ${
                 tab === t ? 'bg-teal/15 text-teal' : 'text-muted hover:text-text'
               }`}
             >

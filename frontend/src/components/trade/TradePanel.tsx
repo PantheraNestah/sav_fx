@@ -306,24 +306,24 @@ export function TradePanel({ symbol }: { symbol: Symbol }) {
       </div>
 
       {/* Primary Value Input (Stake or Payout) */}
-      <div className="mb-2 flex items-center gap-2">
+      <div className="mb-2 flex items-center gap-1.5 xs:gap-2">
         <button
           onClick={() => {
             if (stakeMode === 'stake') handleStakeChange(stakeInput - 1)
             else handlePayoutChange(payoutInput - 2)
           }}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-line bg-panel text-muted hover:text-text transition"
+          className="flex h-10 w-9 xs:w-10 shrink-0 items-center justify-center rounded-xl border border-line bg-panel text-muted hover:text-text transition"
         >
           <Minus size={15} />
         </button>
 
         <div
-          className={`flex flex-1 items-center justify-between rounded-xl border px-3 py-2 bg-panel transition ${
+          className={`flex flex-1 min-w-[75px] items-center justify-between rounded-xl border px-2.5 xs:px-3 py-2 bg-panel transition ${
             isInsufficient ? 'border-red/60 bg-red/5' : 'border-line focus-within:border-teal'
           }`}
         >
-          <div className="flex flex-col min-w-0">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted">
+          <div className="flex flex-col min-w-0 flex-1">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted truncate">
               {stakeMode === 'stake' ? 'Stake' : 'Target Payout'}
             </span>
             <input
@@ -334,10 +334,10 @@ export function TradePanel({ symbol }: { symbol: Symbol }) {
                 if (stakeMode === 'stake') handleStakeChange(val)
                 else handlePayoutChange(val)
               }}
-              className="w-full bg-transparent text-base font-bold outline-none"
+              className="w-full bg-transparent text-sm xs:text-base font-bold outline-none"
             />
           </div>
-          <span className="text-xs font-semibold text-muted ml-2">USD</span>
+          <span className="text-[11px] xs:text-xs font-semibold text-muted ml-1.5 shrink-0">USD</span>
         </div>
 
         <button
@@ -345,7 +345,7 @@ export function TradePanel({ symbol }: { symbol: Symbol }) {
             if (stakeMode === 'stake') handleStakeChange(stakeInput + 1)
             else handlePayoutChange(payoutInput + 2)
           }}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-line bg-panel text-muted hover:text-text transition"
+          className="flex h-10 w-9 xs:w-10 shrink-0 items-center justify-center rounded-xl border border-line bg-panel text-muted hover:text-text transition"
         >
           <Plus size={15} />
         </button>
@@ -354,12 +354,12 @@ export function TradePanel({ symbol }: { symbol: Symbol }) {
         <button
           type="button"
           onClick={() => setScannerOpen(true)}
-          className="flex shrink-0 flex-col items-center gap-0.5 rounded-xl border border-teal/40 bg-teal/10 px-3 py-2 text-teal hover:bg-teal/20 transition"
+          className="flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border border-teal/40 bg-teal/10 px-2.5 xs:px-3 py-1.5 xs:py-2 text-teal hover:bg-teal/20 transition"
         >
-          <span className="flex items-center gap-1 text-xs font-bold">
-            <Sparkles size={13} /> AI Scanner
+          <span className="flex items-center gap-1 text-[11px] xs:text-xs font-bold whitespace-nowrap">
+            <Sparkles size={12} className="xs:w-[13px] xs:h-[13px]" /> AI Scanner
           </span>
-          <span className="text-[9px] text-teal/80">Best setups</span>
+          <span className="text-[9px] text-teal/80 hidden xs:inline">Best setups</span>
         </button>
       </div>
 
@@ -546,9 +546,9 @@ function NumberBox({
         disabled ? 'opacity-60 cursor-not-allowed' : ''
       }`}
     >
-      <span className={`flex items-center gap-1 text-[10px] font-bold ${color}`}>
-        {icon}
-        {label}
+      <span className={`flex items-center gap-1 text-[10px] font-bold ${color} truncate`}>
+        <span className="shrink-0">{icon}</span>
+        <span className="truncate">{label}</span>
       </span>
       <span className="flex items-baseline gap-1">
         <span className={`text-xs font-bold ${color}`}>{prefix}</span>
@@ -610,7 +610,7 @@ function OutcomeButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`flex flex-1 items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-all ${
+      className={`flex flex-1 items-center justify-between gap-2 xs:gap-3 rounded-xl border px-3 xs:px-4 py-2.5 xs:py-3 text-left transition-all ${
         disabled
           ? 'opacity-50 cursor-not-allowed border-line bg-panel-light'
           : danger
@@ -618,16 +618,16 @@ function OutcomeButton({
             : 'border-teal/40 bg-gradient-to-br from-teal/10 to-transparent hover:from-teal/20 active:scale-[0.99]'
       }`}
     >
-      <span className="flex min-w-0 flex-1 items-center gap-2 font-bold text-sm">
+      <span className="flex min-w-0 flex-1 items-center gap-1.5 xs:gap-2 font-bold text-xs xs:text-sm">
         <span className={`shrink-0 ${danger ? 'text-red' : 'text-teal'}`}>{icon}</span>
         <span className="truncate">{label}</span>
       </span>
 
       <span className="shrink-0 text-right">
-        <span className="block text-[11px] text-muted font-medium">
+        <span className="block text-[10px] xs:text-[11px] text-muted font-medium">
           Stake ${stake.toFixed(2)} → Return <span className="text-text font-bold">${payoutUsd.toFixed(2)}</span>
         </span>
-        <span className={`block text-xs font-extrabold ${danger ? 'text-red' : 'text-teal'}`}>
+        <span className={`block text-[11px] xs:text-xs font-extrabold ${danger ? 'text-red' : 'text-teal'}`}>
           +{payoutPct.toFixed(1)}% Payout
         </span>
       </span>

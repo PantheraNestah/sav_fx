@@ -45,7 +45,7 @@ export function SymbolSelector({
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 z-50 mt-2 max-h-80 w-72 overflow-y-auto rounded-xl border border-line bg-panel p-1.5 shadow-xl">
+          <div className="absolute left-0 z-50 mt-2 max-h-80 w-72 max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-xl border border-line bg-panel p-1.5 shadow-xl">
             <p className="px-2.5 py-1.5 text-xs text-muted">Continuous Indices</p>
             {SYMBOLS.map((s) => (
               <button

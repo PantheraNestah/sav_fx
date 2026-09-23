@@ -116,7 +116,7 @@ export function TopNav({ onMenu }: { onMenu: () => void }) {
           {notifOpen && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
-              <div className="absolute right-0 z-50 mt-2 w-80 rounded-2xl border border-line bg-panel p-4 shadow-2xl">
+              <div className="fixed inset-x-3 top-16 z-50 rounded-2xl border border-line bg-panel p-4 shadow-2xl sm:absolute sm:inset-x-auto sm:top-full sm:right-0 sm:mt-2 sm:w-80">
                 <div className="mb-3 flex items-center justify-between border-b border-line pb-2">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-sm">Notifications</span>
@@ -182,7 +182,7 @@ export function TopNav({ onMenu }: { onMenu: () => void }) {
           {profileOpen && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
-              <div className="absolute right-0 z-50 mt-2 w-64 rounded-2xl border border-line bg-panel p-4 shadow-2xl">
+              <div className="absolute right-0 z-50 mt-2 w-64 max-w-[calc(100vw-1.5rem)] rounded-2xl border border-line bg-panel p-4 shadow-2xl">
                 <div className="mb-3 border-b border-line pb-3">
                   <p className="font-bold text-sm">{user.name}</p>
                   <p className="text-xs text-muted">{user.email}</p>

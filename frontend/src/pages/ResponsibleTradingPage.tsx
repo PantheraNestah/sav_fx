@@ -39,7 +39,10 @@ export default function ResponsibleTradingPage() {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
+      <div
+        className="mx-auto max-w-4xl px-4 py-6 sm:px-6"
+        style={{ paddingBottom: 'calc(2.5rem + env(safe-area-inset-bottom, 0px))' }}
+      >
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Link

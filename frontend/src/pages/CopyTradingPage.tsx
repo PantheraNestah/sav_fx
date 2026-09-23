@@ -105,7 +105,10 @@ export function CopyTradingPage() {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+      <div
+        className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8"
+        style={{ paddingBottom: 'calc(2.5rem + env(safe-area-inset-bottom, 0px))' }}
+      >
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <span className="mb-3 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-teal">
@@ -295,9 +298,9 @@ export function CopyTradingPage() {
 
         {/* Follow Configuration Modal */}
         {activeStrategy && (
-          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setActiveStrategy(null)} />
-            <div className="relative w-full max-w-md rounded-2xl border border-line bg-panel p-6 shadow-2xl">
+            <div className="relative w-full max-w-md max-h-[88dvh] overflow-y-auto rounded-2xl border border-line bg-panel p-5 sm:p-6 shadow-2xl">
               <div className="flex items-center justify-between border-b border-line pb-3 mb-4">
                 <h3 className="font-bold text-base">Configure Copy: {activeStrategy.name}</h3>
                 <button onClick={() => setActiveStrategy(null)} className="rounded-lg p-1 text-muted hover:text-text">
