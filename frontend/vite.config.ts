@@ -13,6 +13,9 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
+          if (id.includes('lightweight-charts')) {
+            return 'tradingview'
+          }
           if (id.includes('recharts')) {
             return 'recharts'
           }

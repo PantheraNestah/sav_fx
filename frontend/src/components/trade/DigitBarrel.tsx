@@ -5,8 +5,8 @@ export function DigitBarrel({ stats, lastDigit }: { stats: DigitStat[]; lastDigi
   const min = Math.min(...stats.map((s) => s.pct))
 
   return (
-    <div className="w-full max-w-full overflow-hidden px-1 xs:px-2 sm:px-4">
-      <div className="flex w-full items-center justify-between sm:justify-center sm:gap-2.5 md:gap-3.5">
+    <div className="w-full max-w-full overflow-hidden py-1 px-1 sm:px-4">
+      <div className="flex w-full items-center justify-center gap-1.5 xs:gap-2 sm:gap-2.5 md:gap-3">
         {stats.map((s) => {
           const isMax = s.pct === max
           const isMin = s.pct === min
@@ -14,7 +14,7 @@ export function DigitBarrel({ stats, lastDigit }: { stats: DigitStat[]; lastDigi
           return (
             <div key={s.digit} className="flex flex-col items-center gap-0.5">
               <div
-                className={`flex h-[28px] w-[28px] xs:h-[31px] xs:w-[31px] sm:h-10 sm:w-10 md:h-11 md:w-11 shrink-0 flex-col items-center justify-center rounded-full border transition-all ${
+                className={`flex h-[28px] w-[28px] xs:h-[30px] xs:w-[30px] sm:h-9 sm:w-9 md:h-10 md:w-10 shrink-0 flex-col items-center justify-center rounded-full border transition-all ${
                   isMax
                     ? 'border-teal bg-teal/15 text-teal font-bold shadow-sm'
                     : isMin
