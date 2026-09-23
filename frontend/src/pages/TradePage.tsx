@@ -55,7 +55,7 @@ export default function TradePage() {
             mobileView === 'trade' ? 'flex' : 'hidden'
           } min-h-0 flex-1 flex-col overflow-y-auto xl:flex xl:flex-row xl:overflow-visible`}
         >
-          <div className="h-[320px] shrink-0 xs:h-[360px] xl:h-auto xl:min-h-0 xl:flex-1 xl:border-r xl:border-line">
+          <div className="h-[350px] shrink-0 xs:h-[385px] xl:h-auto xl:min-h-0 xl:flex-1 xl:border-r xl:border-line">
             <ChartPanel symbol={symbol} onSymbolChange={setSymbol} />
           </div>
           <div className="shrink-0 border-t border-line xl:min-h-0 xl:w-[380px] xl:flex-none xl:border-t-0">

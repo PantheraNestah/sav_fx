@@ -26,9 +26,9 @@ export function PositionDetailModal({
     : 'Pending'
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-md rounded-2xl border border-line bg-panel p-6 shadow-2xl">
+      <div className="relative w-full max-w-md max-h-[88dvh] overflow-y-auto rounded-2xl border border-line bg-panel p-5 sm:p-6 shadow-2xl">
         <div className="flex items-center justify-between border-b border-line pb-4">
           <div className="flex items-center gap-2.5">
             <span
