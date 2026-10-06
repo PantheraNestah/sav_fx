@@ -10,7 +10,7 @@ export function BalanceSelector() {
     <div className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 rounded-lg border border-line bg-panel px-2.5 py-1.5 text-sm hover:border-teal/50"
+        className="flex items-center gap-1.5 rounded-lg border border-line bg-panel px-2 py-1.5 text-sm hover:border-teal/50 sm:gap-2 sm:px-2.5"
       >
         <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal/20 text-[10px] font-bold text-teal">
           {balanceType === 'real' ? 'R' : 'D'}

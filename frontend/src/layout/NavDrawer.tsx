@@ -131,7 +131,10 @@ export function NavDrawer({ open, onClose }: Props) {
             </span>
             <button
               onClick={toggleTheme}
-              className={`h-6 w-11 rounded-full transition-colors ${darkTheme ? 'bg-teal' : 'bg-line'}`}
+              role="switch"
+              aria-checked={darkTheme}
+              aria-label="Dark theme"
+              className={`h-6 w-11 shrink-0 rounded-full transition-colors ${darkTheme ? 'bg-teal' : 'bg-line'}`}
             >
               <span
                 className={`block h-5 w-5 translate-y-0.5 rounded-full bg-white transition-transform ${
