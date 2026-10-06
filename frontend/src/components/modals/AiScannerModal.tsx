@@ -103,7 +103,7 @@ export function AiScannerModal({
                       onApply(rec)
                       onClose()
                     }}
-                    className="flex items-center gap-1 rounded-lg bg-teal px-2.5 py-1.5 sm:px-3 text-xs font-semibold text-bg hover:brightness-110 transition active:scale-95"
+                    className="flex shrink-0 items-center gap-1 whitespace-nowrap rounded-lg bg-teal px-2.5 py-1.5 sm:px-3 text-xs font-semibold text-bg hover:brightness-110 transition active:scale-95"
                   >
                     Apply Setup <ArrowRight size={13} />
                   </button>
