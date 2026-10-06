@@ -67,6 +67,17 @@ body {
   overflow-x: hidden;
 }
 
+/* Touch devices: skip backdrop-filter altogether. Mobile WebKit/Blink composite it as a stale
+   snapshot after a theme change (the half-dark/half-light panels seen on some phones), and the
+   overlays behind it are already 60-65% opaque, so the blur adds little. */
+@media (hover: none) and (pointer: coarse) {
+  .backdrop-blur-sm,
+  .backdrop-blur-md {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+
 /* Applied by ThemeProvider for ~2 frames while switching theme. Everything is
    repainted in a single pass: no colour tweens (which leave mixed-theme frames)
    and no backdrop-filter (mobile WebKit keeps a stale blurred snapshot of the

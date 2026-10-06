@@ -14,9 +14,9 @@ proper auth, etc).
   chart, digit/barrier pickers, Matches/Differs · Over/Under · Even/Odd contracts, Auto/Manual
   trade modes, positions panel, account drawer. Currently runs on a self-contained mock price
   feed and trade simulator (`src/hooks/usePriceFeed.ts`, `src/context/AccountContext.tsx`).
-- `backend/` — FastAPI service with the same simulated trading logic (in-memory balances,
-  positions, a WebSocket tick feed). Not yet wired into the frontend — see "Connecting them"
-  below.
+- `backend/` — FastAPI service: auth, persistent ledger, synthetic tick engine, tick-driven
+  settlement, auto-trading, copy trading and WebSocket push. Optionally used by the frontend
+  (see "Connecting the frontend to the backend").
 
 ## Running the frontend
 
@@ -33,29 +33,38 @@ Serves at http://localhost:5173.
 ```bash
 cd backend
 python3 -m venv .venv
-./.venv/bin/pip install -r requirements.txt
+./.venv/bin/pip install -r requirements-dev.txt
 ./.venv/bin/uvicorn app.main:app --reload --port 8000
+./.venv/bin/python -m pytest        # 97 tests
 ```
 
-Serves at http://localhost:8000 (interactive docs at `/docs`).
+Serves at http://localhost:8000 (interactive docs at `/docs`). Defaults to a local SQLite file
+(`dash.db`); set `DATABASE_URL=postgresql+asyncpg://...` (and `pip install asyncpg`) for Postgres.
+See `backend/.env.example` for all settings. With `ENV=production` it refuses to start without
+real `JWT_SECRET` / `ENGINE_SECRET` values.
 
-## Backend implementation plan
+### What the backend does
 
-`backend/` is currently a scaffold (in-memory state, three endpoints). The full plan for turning
-it into a real backend — data model, synthetic price engine, settlement logic, auto-trade engine,
-copy trading, and exactly which third-party integrations (payments, KYC, email) would be needed
-and why they're out of scope for this demo — is documented in
-[`docs/BACKEND_PLAN.md`](docs/BACKEND_PLAN.md).
+| Area | Details |
+|---|---|
+| Auth | Register / login, 15-min JWT access tokens, rotating refresh tokens with reuse detection, logout, login lockout, password reset tokens (email delivery is a logging stub), TOTP 2FA |
+| Market | Deterministic HMAC-seeded synthetic volatility indices (no real market data), tick history + digit stats, `/ws/ticks/{symbol}`, public seed commitments at `/api/market/fairness` |
+| Trading | Even/Odd, Matches/Differs, Over/Under contracts priced **server-side**, atomic stake debit (balance can never go negative), settled on the exit tick's last digit, 1-10 tick durations, "stake" or "desired payout" entry |
+| Auto trading | Loss-multiple (martingale) sessions with target profit / target loss / 8-step / balance guards |
+| Account | Real + demo balances, append-only ledger, **simulated** deposits/withdrawals, demo reset, notifications, session stats |
+| Copy trading | Providers, subscribe/unsubscribe, eligibility, become-provider, mirrored trades (house providers are flagged `isSimulated`) |
+| Realtime | `/ws/account?token=` pushes balance, position and notification events |
 
-## Connecting them
+Everything is simulated: no payment processor, no brokerage, no real market data. Money-moving
+integrations are deliberately out of scope - see `docs/BACKEND_PLAN.md` section 13.
 
-The frontend currently simulates everything client-side so it runs standalone. To wire it to the
-backend instead:
+## Connecting the frontend to the backend
 
-1. Replace `usePriceFeed`'s local random walk with a WebSocket connection to
-   `ws://localhost:8000/api/market/ticks/{symbol_id}`.
-2. Replace `AccountContext`'s local balance/position state with calls to
-   `GET/POST /api/account/balance`, `POST /api/trades`, `GET /api/trades`.
+Copy `frontend/.env.example` to `frontend/.env` and set `VITE_API_URL=http://localhost:8000`, then
+`npm run dev`. With that set the frontend uses real accounts (login/register are enforced),
+server-side settlement, the WebSocket price feed and the account push channel. Leave it empty to
+keep the self-contained browser simulator. For a deployed frontend, add its origin to the backend's
+`CORS_ORIGINS` (or `CORS_ORIGIN_REGEX` for Vercel previews).
 
 ## Design notes
 

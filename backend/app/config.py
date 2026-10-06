@@ -54,4 +54,6 @@ def get_settings() -> Settings:
     s = Settings()
     if s.is_production and (s.jwt_secret.startswith("dev-only") or s.engine_secret.startswith("dev-only")):
         raise RuntimeError("JWT_SECRET and ENGINE_SECRET must be set when ENV=production")
+    if s.is_production and len(s.jwt_secret) < 32:
+        raise RuntimeError("JWT_SECRET must be at least 32 characters")
     return s

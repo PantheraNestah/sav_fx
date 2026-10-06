@@ -29,6 +29,16 @@ def _verify(password: str, hashed: str) -> bool:
         return False
 
 
+_dummy: str | None = None
+
+
+def dummy_hash() -> str:
+    global _dummy
+    if _dummy is None:
+        _dummy = _hash("not-a-real-password")
+    return _dummy
+
+
 async def hash_password(password: str) -> str:
     return await asyncio.to_thread(_hash, password)
 

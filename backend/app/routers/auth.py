@@ -99,7 +99,9 @@ async def login(body: LoginRequest, response: Response, session: AsyncSession = 
         raise HTTPException(status_code=429, detail="Too many failed attempts. Try again later.")
 
     user = (await session.execute(select(User).where(User.email == email))).scalar_one_or_none()
-    ok = user is not None and await security.verify_password(body.password, user.password_hash)
+    # Always run a bcrypt check so response time doesn't reveal whether the email exists.
+    ok = await security.verify_password(body.password, user.password_hash if user else security.dummy_hash())
+    ok = ok and user is not None
     if ok and user.totp_enabled:
         if not body.otp:
             raise HTTPException(status_code=401, detail="otp_required")

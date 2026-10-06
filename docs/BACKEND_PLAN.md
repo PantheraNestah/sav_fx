@@ -1,6 +1,20 @@
 # Backend Implementation Plan — Dash Clone
 
-**Status:** Planning document. Nothing in this file is implemented yet except where noted as "current scaffold."
+**Status:** Phases 1-4 and most of phase 5 are implemented in `backend/` (see the table below). Differences from the plan as written:
+
+| Plan | As built |
+|---|---|
+| PostgreSQL + Alembic | SQLAlchemy 2 async; SQLite by default, Postgres via `DATABASE_URL` (+`asyncpg`). Tables are created at startup - **no Alembic migrations yet** |
+| Redis pub/sub + rate limiting | In-process hub (`app/events.py`) and token bucket (`app/ratelimit.py`) behind the same publish/subscribe interface; run a single worker. Swap for Redis to scale out |
+| `ticks` table | Ticks are kept in an in-memory ring buffer (300/symbol); no tick persistence |
+| Money as `numeric` | Integer cents everywhere; the API exposes decimal numbers |
+| Provably fair | HMAC-derived steps with hourly epoch seeds, SHA-256 commitments and revealed past seeds at `/api/market/fairness` |
+| Email provider | `app/mailer.py` logs messages (reset tokens) - plug in SendGrid/Postmark/SES |
+| Notifications email/push, KYC, payments | Not built, per sections 13-14. Deposits/withdrawals are simulated ledger entries |
+| Section 12 notifications | In-app notifications persisted and pushed over `/ws/account` |
+| Observability | Request logging + `/api/health`; no Sentry/metrics yet |
+
+
 **Companion to:** `backend/` (FastAPI scaffold), `frontend/` (React app, currently fully self-contained with a client-side mock trading engine).
 
 ---
