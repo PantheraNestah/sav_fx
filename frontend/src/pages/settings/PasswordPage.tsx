@@ -1,6 +1,7 @@
 import { Check, Eye, EyeOff, KeyRound, Lock, X } from 'lucide-react'
 import { useState } from 'react'
 import { useToast } from '../../context/useToast'
+import { api, API_ENABLED } from '../../lib/api'
 import { SettingsLayout } from '../../layout/SettingsLayout'
 
 const RULES = [
@@ -61,7 +62,7 @@ export function PasswordPage() {
   const strength = next.length === 0 ? '' : passed <= 1 ? 'Weak' : passed <= 3 ? 'Fair' : 'Strong'
   const strengthColor = strength === 'Strong' ? 'bg-teal' : strength === 'Fair' ? 'bg-amber-400' : 'bg-red'
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
 
@@ -78,6 +79,15 @@ export function PasswordPage() {
     if (next !== confirm) {
       setError('Confirmation password does not match new password.')
       return
+    }
+
+    if (API_ENABLED) {
+      try {
+        await api('/api/settings/password', { body: { currentPassword: current, newPassword: next } })
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Could not change password.')
+        return
+      }
     }
 
     showToast({

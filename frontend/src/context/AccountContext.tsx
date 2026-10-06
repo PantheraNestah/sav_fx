@@ -1,5 +1,4 @@
 import {
-  createContext,
   useCallback,
   useEffect,
   useMemo,
@@ -15,66 +14,10 @@ import type {
   Position,
   Transaction,
 } from '../types'
+import { API_ENABLED } from '../lib/api'
+import { AccountCtx, type PlaceTradeOptions } from './accountCtx'
+import { LiveAccountProvider } from './LiveAccountProvider'
 import { useToast } from './useToast'
-
-export interface PlaceTradeOptions {
-  contract: string
-  symbol: string
-  stake: number
-  payoutPct: number
-  contractGroup?: ContractGroup
-  side?: string
-  targetDigit?: number
-  barrier?: number
-  currentPrice?: number
-}
-
-export interface AccountState {
-  balanceType: BalanceType
-  setBalanceType: (b: BalanceType) => void
-  balances: Record<BalanceType, number>
-  positions: Position[]
-  transactions: Transaction[]
-  notifications: NotificationItem[]
-  sessionStats: {
-    totalTrades: number
-    wins: number
-    losses: number
-    winRate: number
-    sessionPl: number
-  }
-  placeTrade: (opts: PlaceTradeOptions) => string | null
-  resetDemo: () => void
-  deposit: (amount: number, method: string) => void
-  withdraw: (amount: number, method: string, destination: string) => boolean
-  user: { name: string; email: string }
-  updateUser: (data: { name: string }) => void
-  activePositionDetail: Position | null
-  openPositionDetail: (p: Position) => void
-  closePositionDetail: () => void
-  markNotificationRead: (id: string) => void
-  markAllNotificationsRead: () => void
-  autoSession: AutoSessionState
-  startAutoSession: (params: {
-    baseStake: number
-    lossMultiple: number
-    targetProfit: number
-    targetLoss: number
-    contractGroup: ContractGroup
-    side: string
-    symbol: string
-    payoutPct: number
-    targetDigit?: number
-    barrier?: number
-  }) => void
-  stopAutoSession: () => void
-  isAuthenticated: boolean
-  login: (email: string, password: string, remember?: boolean) => Promise<{ success: boolean; message?: string }>
-  register: (fullName: string, email: string, password: string) => Promise<{ success: boolean; message?: string }>
-  logout: () => void
-}
-
-export const AccountCtx = createContext<AccountState | null>(null)
 
 const MOCK_USER = { name: 'Alex Rivera', email: 'al***ex@example.com' }
 
@@ -107,7 +50,7 @@ const INITIAL_AUTO_SESSION: AutoSessionState = {
   losses: 0,
 }
 
-export function AccountProvider({ children }: { children: ReactNode }) {
+export function MockAccountProvider({ children }: { children: ReactNode }) {
   const { showToast } = useToast()
   const [balanceType, setBalanceType] = useState<BalanceType>('demo')
   const [balances, setBalances] = useState<Record<BalanceType, number>>({ real: 0, demo: 10000 })
@@ -760,4 +703,13 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   )
 
   return <AccountCtx.Provider value={value}>{children}</AccountCtx.Provider>
+}
+
+/** Live (FastAPI-backed) when VITE_API_URL is set, otherwise the self-contained simulator. */
+export function AccountProvider({ children }: { children: ReactNode }) {
+  return API_ENABLED ? (
+    <LiveAccountProvider>{children}</LiveAccountProvider>
+  ) : (
+    <MockAccountProvider>{children}</MockAccountProvider>
+  )
 }

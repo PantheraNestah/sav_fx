@@ -12,6 +12,7 @@ import {
   Sun,
 } from 'lucide-react'
 import { useTheme } from '../../context/useTheme'
+import { api, API_ENABLED } from '../../lib/api'
 
 export default function ForgotPasswordPage() {
   const { theme, toggleTheme } = useTheme()
@@ -28,8 +29,13 @@ export default function ForgotPasswordPage() {
     setError('')
 
     try {
-      // Simulate account verification / reset email dispatch
-      await new Promise((resolve) => setTimeout(resolve, 800))
+      if (API_ENABLED) {
+        // The server answers identically whether or not the account exists.
+        await api('/api/auth/forgot-password', { body: { email: email.trim() }, auth: false })
+      } else {
+        // Simulate account verification / reset email dispatch
+        await new Promise((resolve) => setTimeout(resolve, 800))
+      }
       setSent(true)
     } catch {
       setError('We could not reach the reset service. Please try again.')

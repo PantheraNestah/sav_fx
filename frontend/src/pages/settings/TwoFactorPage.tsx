@@ -1,6 +1,7 @@
 import { Check, Copy, QrCode, Shield, ShieldCheck, Smartphone } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useToast } from '../../context/useToast'
+import { api, API_ENABLED } from '../../lib/api'
 import { SettingsLayout } from '../../layout/SettingsLayout'
 
 export function TwoFactorPage() {
@@ -10,11 +11,48 @@ export function TwoFactorPage() {
   const [code, setCode] = useState('')
   const [copied, setCopied] = useState(false)
 
-  const SECRET_KEY = 'DASH-77XA-2FA9-QWER'
+  const [secretKey, setSecretKey] = useState('DASH-77XA-2FA9-QWER')
+  const [disabling, setDisabling] = useState(false)
+  const [password, setPassword] = useState('')
 
-  function handleVerifyCode(e: React.FormEvent) {
+  const SECRET_KEY = secretKey
+
+  useEffect(() => {
+    if (!API_ENABLED) return
+    api<{ twoFactorEnabled: boolean }>('/api/auth/me')
+      .then((me) => setEnabled(me.twoFactorEnabled))
+      .catch(() => {})
+  }, [])
+
+  async function startSetup() {
+    if (setupMode) {
+      setSetupMode(false)
+      return
+    }
+    if (API_ENABLED) {
+      try {
+        const r = await api<{ secret: string }>('/api/settings/2fa/setup', { method: 'POST' })
+        setSecretKey(r.secret)
+      } catch (err) {
+        showToast({ title: '2FA setup failed', message: err instanceof Error ? err.message : 'Try again.', type: 'error' })
+        return
+      }
+    }
+    setSetupMode(true)
+  }
+
+  async function handleVerifyCode(e: React.FormEvent) {
     e.preventDefault()
     if (code.length < 6) return
+
+    if (API_ENABLED) {
+      try {
+        await api('/api/settings/2fa/enable', { body: { code } })
+      } catch (err) {
+        showToast({ title: 'Invalid code', message: err instanceof Error ? err.message : 'Try again.', type: 'error' })
+        return
+      }
+    }
 
     setEnabled(true)
     setSetupMode(false)
@@ -26,7 +64,23 @@ export function TwoFactorPage() {
     })
   }
 
-  function handleDisable() {
+  async function handleDisable(e?: React.FormEvent) {
+    e?.preventDefault()
+    if (API_ENABLED) {
+      if (!disabling) {
+        setDisabling(true)
+        return
+      }
+      try {
+        await api('/api/settings/2fa/disable', { body: { code, password } })
+      } catch (err) {
+        showToast({ title: 'Could not disable 2FA', message: err instanceof Error ? err.message : 'Try again.', type: 'error' })
+        return
+      }
+      setDisabling(false)
+      setPassword('')
+      setCode('')
+    }
     setEnabled(false)
     setSetupMode(false)
     showToast({
@@ -78,14 +132,14 @@ export function TwoFactorPage() {
 
           {enabled ? (
             <button
-              onClick={handleDisable}
+              onClick={() => void handleDisable()}
               className="shrink-0 rounded-xl border border-red/40 px-4 py-2 text-xs font-bold text-red hover:bg-red/10 transition"
             >
               Disable 2FA
             </button>
           ) : (
             <button
-              onClick={() => setSetupMode((v) => !v)}
+              onClick={() => void startSetup()}
               className="shrink-0 rounded-xl bg-teal px-4 py-2 text-xs font-bold text-bg hover:brightness-110 shadow"
             >
               {setupMode ? 'Cancel Setup' : 'Setup Authenticator'}
@@ -93,16 +147,53 @@ export function TwoFactorPage() {
           )}
         </div>
 
+        {enabled && disabling && (
+          <form onSubmit={handleDisable} className="space-y-3 border-t border-line/60 pt-4">
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Current password"
+              autoComplete="current-password"
+              className="w-full rounded-xl border border-line bg-panel px-4 py-2.5 text-sm outline-none focus:border-teal"
+              required
+            />
+            <input
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+              placeholder="6-digit code"
+              className="w-full rounded-xl border border-line bg-panel px-4 py-2.5 text-center font-mono tracking-widest outline-none focus:border-teal"
+              required
+            />
+            <button
+              type="submit"
+              disabled={code.length < 6 || !password}
+              className="w-full rounded-xl bg-red py-2.5 text-sm font-bold text-white disabled:opacity-50"
+            >
+              Confirm Disable
+            </button>
+          </form>
+        )}
+
         {/* Setup Drawer */}
         {setupMode && !enabled && (
           <div className="mt-4 border-t border-line/60 pt-4 space-y-4 animate-in slide-in-from-top-2">
             <div className="flex flex-col sm:flex-row items-center gap-5">
-              <div className="flex h-32 w-32 shrink-0 items-center justify-center rounded-2xl bg-white p-3 shadow text-black">
-                <QrCode size={96} />
-              </div>
+              {!API_ENABLED && (
+                <div className="flex h-32 w-32 shrink-0 items-center justify-center rounded-2xl bg-white p-3 shadow text-black">
+                  <QrCode size={96} />
+                </div>
+              )}
               <div className="space-y-2 text-xs text-muted flex-1">
-                <p className="font-bold text-text text-sm">Scan QR code with your app</p>
-                <p>Use Google Authenticator, Authy, or 1Password to scan the QR code to connect Dash.</p>
+                <p className="font-bold text-text text-sm">{API_ENABLED ? 'Enter this setup key in your app' : 'Scan QR code with your app'}</p>
+                <p>
+                  {API_ENABLED
+                    ? 'In Google Authenticator, Authy, or 1Password choose “Enter a setup key”, paste the key below (time-based), then type the 6-digit code it shows.'
+                    : 'Use Google Authenticator, Authy, or 1Password to scan the QR code to connect Dash.'}
+                </p>
                 <div className="flex items-center gap-2 rounded-lg border border-line bg-panel px-2.5 py-1.5 font-mono text-text">
                   <span className="truncate flex-1">{SECRET_KEY}</span>
                   <button onClick={copySecret} className="text-muted hover:text-teal">

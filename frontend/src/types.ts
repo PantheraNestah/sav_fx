@@ -57,6 +57,7 @@ export interface Transaction {
 }
 
 export interface AutoSessionState {
+  id?: string
   isActive: boolean
   baseStake: number
   currentStake: number
@@ -72,6 +73,7 @@ export interface AutoSessionState {
   losses: number
   side?: string
   contractGroup?: ContractGroup
+  stopReason?: string | null
 }
 
 export interface NotificationItem {

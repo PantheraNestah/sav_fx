@@ -9,11 +9,12 @@ import {
   TrendingUp,
   X,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAccount } from '../context/useAccount'
 import { useToast } from '../context/useToast'
 import { useUi } from '../context/useUi'
+import { api, API_ENABLED } from '../lib/api'
 
 interface Strategy {
   id: string
@@ -25,6 +26,29 @@ interface Strategy {
   trades: number
   followers: number
   minAllocation: number
+  isSimulated?: boolean
+  isFollowing?: boolean
+}
+
+interface ProviderDto {
+  id: string
+  initials: string
+  name: string
+  risk: string
+  return30d: number
+  winRate: number
+  trades: number
+  followers: number
+  minAllocation: number
+  isSimulated: boolean
+  isFollowing: boolean
+}
+
+interface EligibilityDto {
+  completedTrades: number
+  totalPl: number
+  winRate: number
+  isProvider: boolean
 }
 
 const STRATEGIES: Strategy[] = [
@@ -72,17 +96,55 @@ export function CopyTradingPage() {
   const [activeStrategy, setActiveStrategy] = useState<Strategy | null>(null)
   const [multiplier, setMultiplier] = useState(1)
   const [followedIds, setFollowedIds] = useState<string[]>([])
+  const [liveProviders, setLiveProviders] = useState<Strategy[] | null>(null)
+  const [eligibility, setEligibility] = useState<EligibilityDto | null>(null)
 
-  const filteredStrategies = STRATEGIES.filter(
+  const reload = useCallback(async () => {
+    try {
+      const [list, el] = await Promise.all([
+        api<ProviderDto[]>('/api/copy-trading/providers'),
+        api<EligibilityDto>('/api/copy-trading/eligibility'),
+      ])
+      setLiveProviders(list.map((p) => ({ ...p, winRate: `${p.winRate.toFixed(1)}%` })))
+      setEligibility(el)
+    } catch (e) {
+      showToast({ title: 'Could not load strategies', message: e instanceof Error ? e.message : 'Try again.', type: 'error' })
+    }
+  }, [showToast])
+
+  useEffect(() => {
+    if (API_ENABLED) void reload()
+  }, [reload])
+
+  const strategies = liveProviders ?? STRATEGIES
+  const stats = eligibility
+    ? { totalTrades: eligibility.completedTrades, sessionPl: eligibility.totalPl, winRate: eligibility.winRate }
+    : sessionStats
+
+  const filteredStrategies = strategies.filter(
     (s) =>
       s.name.toLowerCase().includes(search.toLowerCase()) ||
       s.risk.toLowerCase().includes(search.toLowerCase()),
   )
 
   // Real eligibility criteria checks against live user session
-  const reqTrades = sessionStats.totalTrades >= 20
-  const reqProfit = sessionStats.sessionPl > 0
-  const reqWinRate = sessionStats.winRate >= 55
+  const reqTrades = stats.totalTrades >= 20
+  const reqProfit = stats.sessionPl > 0
+  const reqWinRate = stats.winRate >= 55
+
+  async function applyAsProvider() {
+    if (API_ENABLED) {
+      try {
+        await api('/api/copy-trading/become-provider', { method: 'POST' })
+        showToast({ title: 'You are now a strategy provider', message: 'Followers will mirror your manual trades.', type: 'success' })
+        void reload()
+      } catch (e) {
+        showToast({ title: 'Application declined', message: e instanceof Error ? e.message : 'Try again.', type: 'error' })
+      }
+    } else {
+      showToast({ title: 'Application received', message: 'Provider onboarding is simulated in demo mode.', type: 'info' })
+    }
+  }
 
   function handleFollow(strat: Strategy) {
     if (balances.real < 100) {
@@ -92,9 +154,19 @@ export function CopyTradingPage() {
     setActiveStrategy(strat)
   }
 
-  function confirmFollow() {
+  async function confirmFollow() {
     if (!activeStrategy) return
-    setFollowedIds((prev) => [...prev, activeStrategy.id])
+    if (API_ENABLED) {
+      try {
+        await api(`/api/copy-trading/providers/${activeStrategy.id}/subscribe`, { body: { stakeMultiplier: multiplier } })
+        void reload()
+      } catch (e) {
+        showToast({ title: 'Could not subscribe', message: e instanceof Error ? e.message : 'Try again.', type: 'error' })
+        return
+      }
+    } else {
+      setFollowedIds((prev) => [...prev, activeStrategy.id])
+    }
     showToast({
       title: `Subscribed to ${activeStrategy.name}`,
       message: `Trades will be mirrored at ${multiplier}x stake multiplier.`,
@@ -179,33 +251,34 @@ export function CopyTradingPage() {
               <span className={`flex h-4 w-4 items-center justify-center rounded-full ${reqTrades ? 'bg-teal text-bg' : 'bg-panel-light'}`}>
                 <Check size={10} />
               </span>
-              {sessionStats.totalTrades}/20 completed trades
+              {stats.totalTrades}/20 completed trades
             </span>
 
             <span className={`flex items-center gap-2 text-xs font-medium ${reqProfit ? 'text-teal font-bold' : 'text-muted'}`}>
               <span className={`flex h-4 w-4 items-center justify-center rounded-full ${reqProfit ? 'bg-teal text-bg' : 'bg-panel-light'}`}>
                 <Check size={10} />
               </span>
-              Positive session P/L ({sessionStats.sessionPl >= 0 ? `+$${sessionStats.sessionPl}` : `-$${Math.abs(sessionStats.sessionPl)}`})
+              Positive session P/L ({stats.sessionPl >= 0 ? `+$${stats.sessionPl}` : `-$${Math.abs(stats.sessionPl)}`})
             </span>
 
             <span className={`flex items-center gap-2 text-xs font-medium ${reqWinRate ? 'text-teal font-bold' : 'text-muted'}`}>
               <span className={`flex h-4 w-4 items-center justify-center rounded-full ${reqWinRate ? 'bg-teal text-bg' : 'bg-panel-light'}`}>
                 <Check size={10} />
               </span>
-              {sessionStats.winRate}% / 55% win rate
+              {stats.winRate}% / 55% win rate
             </span>
           </div>
 
           <button
-            disabled={!reqTrades || !reqProfit || !reqWinRate}
+            onClick={() => void applyAsProvider()}
+            disabled={!reqTrades || !reqProfit || !reqWinRate || eligibility?.isProvider}
             className={`flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition ${
               reqTrades && reqProfit && reqWinRate
                 ? 'bg-teal text-bg hover:brightness-110'
                 : 'cursor-not-allowed bg-panel-light text-muted'
             }`}
           >
-            {reqTrades && reqProfit && reqWinRate ? 'Apply as Provider' : 'Requirements Incomplete'}
+            {eligibility?.isProvider ? 'You are a Provider' : reqTrades && reqProfit && reqWinRate ? 'Apply as Provider' : 'Requirements Incomplete'}
             <Lock size={13} />
           </button>
         </div>
@@ -214,7 +287,7 @@ export function CopyTradingPage() {
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-xl font-bold">Strategy Marketplace</h2>
-            <p className="text-xs text-muted">Audited trader performance across synthetic continuous indices</p>
+            <p className="text-xs text-muted">Simulated trader performance across synthetic continuous indices</p>
           </div>
           <div className="relative w-full sm:w-64">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
@@ -229,7 +302,7 @@ export function CopyTradingPage() {
 
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filteredStrategies.map((s) => {
-            const isFollowing = followedIds.includes(s.id)
+            const isFollowing = s.isFollowing || followedIds.includes(s.id)
 
             return (
               <div key={s.id} className="rounded-2xl border border-line bg-panel p-5 shadow-sm hover:border-teal/50 transition">
@@ -242,7 +315,7 @@ export function CopyTradingPage() {
                       <p className="text-sm font-bold">{s.name}</p>
                       <span className="flex items-center gap-1 text-[11px] text-teal">
                         <ShieldCheck size={12} />
-                        Verified strategy
+                        {s.isSimulated ? 'Simulated strategy' : 'Provider strategy'}
                       </span>
                     </div>
                   </div>
@@ -251,9 +324,9 @@ export function CopyTradingPage() {
                   </span>
                 </div>
 
-                <p className="text-xs text-muted">30D Verified Return</p>
-                <p className="mb-4 text-2xl font-extrabold font-mono text-teal">
-                  +${s.return30d.toFixed(2)} USD
+                <p className="text-xs text-muted">30D Return (illustrative)</p>
+                <p className={`mb-4 text-2xl font-extrabold font-mono ${s.return30d >= 0 ? 'text-teal' : 'text-red'}`}>
+                  {s.return30d >= 0 ? '+' : '-'}${Math.abs(s.return30d).toFixed(2)} USD
                 </p>
 
                 <div className="mb-4 flex items-center justify-between border-t border-line/60 pt-3 text-xs">
@@ -343,7 +416,7 @@ export function CopyTradingPage() {
                 </div>
 
                 <button
-                  onClick={confirmFollow}
+                  onClick={() => void confirmFollow()}
                   className="w-full rounded-xl bg-teal py-2.5 text-sm font-bold text-bg hover:brightness-110"
                 >
                   Start Mirroring Trades
