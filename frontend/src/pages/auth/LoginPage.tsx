@@ -25,6 +25,8 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [otp, setOtp] = useState('')
+  const [otpRequired, setOtpRequired] = useState(false)
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -43,10 +45,11 @@ export default function LoginPage() {
 
     try {
       setLoading(true)
-      const res = await login(email, password, remember)
+      const res = await login(email, password, remember, otp)
       if (res.success) {
         navigate('/trade', { replace: true })
       } else {
+        if (res.otpRequired) setOtpRequired(true)
         setError(res.message || 'Login failed. Please check your credentials.')
       }
     } catch {
@@ -152,6 +155,24 @@ export default function LoginPage() {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
+
+            {otpRequired && (
+              <div className="auth-field">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  className="form-control"
+                  placeholder="6-digit authenticator code"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                  autoComplete="one-time-code"
+                  autoFocus
+                  required
+                />
+              </div>
+            )}
 
             <div className="flex items-center justify-between mb-5 text-sm">
               <label htmlFor="remember-me" className="flex items-center gap-2 cursor-pointer text-muted select-none">

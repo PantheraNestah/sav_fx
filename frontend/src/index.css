@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 
+/* `dark:` must follow the app's data-theme switch, not the OS media query —
+   otherwise a device in OS-dark with the app in light (or vice versa) mixes themes. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
 /* Dark theme (default) — matches the reference site's dashboard palette */
 :root {
   --bg: #091321;
@@ -44,6 +48,10 @@
 
 html {
   color-scheme: dark;
+  background: var(--bg);
+  /* Stop iOS from re-inflating text and tinting UI on its own */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 html[data-theme='light'] {
   color-scheme: light;
@@ -57,7 +65,30 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
-  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* Touch devices: skip backdrop-filter altogether. Mobile WebKit/Blink composite it as a stale
+   snapshot after a theme change (the half-dark/half-light panels seen on some phones), and the
+   overlays behind it are already 60-65% opaque, so the blur adds little. */
+@media (hover: none) and (pointer: coarse) {
+  .backdrop-blur-sm,
+  .backdrop-blur-md {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+
+/* Applied by ThemeProvider for ~2 frames while switching theme. Everything is
+   repainted in a single pass: no colour tweens (which leave mixed-theme frames)
+   and no backdrop-filter (mobile WebKit keeps a stale blurred snapshot of the
+   previous theme behind modals and toolbars until the layer is invalidated). */
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: none !important;
+  animation-duration: 0s !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }
 
 * {

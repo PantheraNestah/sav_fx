@@ -159,7 +159,7 @@ export function ChartPanel({
         />
 
         {/* Bottom-left Sleek Zoom & Grid Toolbar Pill */}
-        <div className="absolute bottom-2.5 left-2.5 z-10 flex items-center gap-1 rounded-xl border border-line/80 bg-panel/90 p-1 shadow-lg backdrop-blur-md">
+        <div className="absolute bottom-9 left-2.5 z-10 flex items-center gap-1 rounded-xl border border-line/80 bg-panel/90 p-1 shadow-lg backdrop-blur-md">
           <button
             onClick={handleZoomOut}
             className="flex h-7 w-7 items-center justify-center rounded-lg text-muted hover:bg-panel-light hover:text-text transition"

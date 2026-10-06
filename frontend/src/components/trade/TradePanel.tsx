@@ -128,6 +128,7 @@ export function TradePanel({ symbol }: { symbol: Symbol }) {
         contractGroup: group,
         side,
         symbol: symbol.label,
+        symbolId: symbol.id,
         payoutPct,
         targetDigit: group === 'matches_differs' ? pickedDigit : undefined,
         barrier: group === 'over_under' ? barrier : undefined,
@@ -136,6 +137,7 @@ export function TradePanel({ symbol }: { symbol: Symbol }) {
       placeTrade({
         contract: `${GROUPS.find((g) => g.id === group)?.label} · ${side}`,
         symbol: symbol.label,
+        symbolId: symbol.id,
         stake: effectiveStake,
         payoutPct,
         contractGroup: group,

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Outlet } from 'react-router-dom'
+import { Navigate, Outlet } from 'react-router-dom'
 import { ChatWidget } from '../components/ChatWidget'
 import { ToastContainer } from '../components/ToastContainer'
 import { DepositModal } from '../components/modals/DepositModal'
@@ -8,6 +8,7 @@ import { PositionDetailModal } from '../components/modals/PositionDetailModal'
 import { TradeExplainerModal } from '../components/modals/TradeExplainerModal'
 import { WithdrawModal } from '../components/modals/WithdrawModal'
 import { useAccount } from '../context/useAccount'
+import { API_ENABLED } from '../lib/api'
 import { useUi } from '../context/useUi'
 import { NavDrawer } from './NavDrawer'
 import { TopNav } from './TopNav'
@@ -15,7 +16,10 @@ import { TopNav } from './TopNav'
 export function AppLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const { activeModal, closeModal, chatOpen, closeChat } = useUi()
-  const { activePositionDetail, closePositionDetail } = useAccount()
+  const { activePositionDetail, closePositionDetail, isAuthenticated } = useAccount()
+
+  // With a real backend every trading view needs a session.
+  if (API_ENABLED && !isAuthenticated) return <Navigate to="/login" replace />
 
   return (
     <div className="flex h-dvh flex-col bg-bg text-text">

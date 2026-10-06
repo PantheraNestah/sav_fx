@@ -39,11 +39,11 @@ export function TopNav({ onMenu }: { onMenu: () => void }) {
 
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b border-line bg-bg px-3 sm:px-4">
-      <div className="flex items-center gap-4">
+      <div className="flex min-w-0 shrink-0 items-center gap-2.5 sm:gap-4">
         <button onClick={onMenu} className="text-muted hover:text-text xl:hidden">
           <Menu size={20} />
         </button>
-        <Link to="/trade" className="flex items-center gap-2">
+        <Link to="/trade" className="hidden items-center gap-2 xs:flex">
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-teal text-sm font-bold text-bg">
             D
           </span>
@@ -77,7 +77,7 @@ export function TopNav({ onMenu }: { onMenu: () => void }) {
         </nav>
       </div>
 
-      <div className="flex items-center gap-2 sm:gap-3">
+      <div className="flex min-w-0 items-center gap-1.5 sm:gap-3">
         <BalanceSelector />
 
         <Link
@@ -102,7 +102,7 @@ export function TopNav({ onMenu }: { onMenu: () => void }) {
               setNotifOpen((v) => !v)
               setProfileOpen(false)
             }}
-            className="relative flex h-9 w-9 items-center justify-center rounded-lg text-muted hover:text-text"
+            className="relative flex h-9 w-8 items-center justify-center rounded-lg text-muted hover:text-text sm:w-9"
             title="Notifications"
           >
             <Bell size={18} />
@@ -173,7 +173,7 @@ export function TopNav({ onMenu }: { onMenu: () => void }) {
               setProfileOpen((v) => !v)
               setNotifOpen(false)
             }}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-panel-light text-muted hover:text-text border border-line"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-panel-light text-muted hover:text-text border border-line"
             title="User Profile"
           >
             <span className="text-xs font-bold text-teal">{user.name[0]}</span>

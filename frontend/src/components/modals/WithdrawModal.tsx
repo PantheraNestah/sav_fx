@@ -25,8 +25,8 @@ export function WithdrawModal({ onClose }: { onClose: () => void }) {
     if (amount < 10 || amount > balances.real) return
 
     setIsProcessing(true)
-    setTimeout(() => {
-      const ok = withdraw(amount, method === 'mpesa' ? 'M-Pesa' : 'USDT TRC20', destination)
+    setTimeout(async () => {
+      const ok = await withdraw(amount, method === 'mpesa' ? 'M-Pesa' : 'USDT TRC20', destination)
       setIsProcessing(false)
       if (ok) {
         setIsSuccess(true)

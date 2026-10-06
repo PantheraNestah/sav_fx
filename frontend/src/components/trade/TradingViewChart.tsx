@@ -22,6 +22,52 @@ interface TradingViewChartProps {
   onChartReady?: (chart: IChartApi) => void
 }
 
+interface Palette {
+  bg: string
+  text: string
+  border: string
+  grid: string
+  accent: string
+  areaTop: string
+  areaBottom: string
+  label: string
+}
+
+function cssVar(name: string, fallback: string): string {
+  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+  return v || fallback
+}
+
+/** Convert #rgb / #rrggbb to an rgba() string (canvas can't resolve var()/color-mix). */
+function withAlpha(hex: string, alpha: number): string {
+  const h = hex.replace('#', '')
+  const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h
+  const n = parseInt(full, 16)
+  if (Number.isNaN(n) || full.length !== 6) return hex
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`
+}
+
+/**
+ * The chart is drawn on a canvas, which can't use CSS variables, so the palette is
+ * resolved from the live theme tokens. This keeps the plot area identical to the
+ * surrounding panel instead of a near-miss hard-coded shade.
+ */
+function readPalette(isDark: boolean): Palette {
+  const bg = cssVar('--panel', isDark ? '#101d30' : '#ffffff')
+  const accent = cssVar('--teal', isDark ? '#4fd1c5' : '#087f79')
+  const line = cssVar('--line', isDark ? '#263d59' : '#cbdde7')
+  return {
+    bg,
+    text: cssVar('--muted', isDark ? '#8ca0b8' : '#6f879a'),
+    border: line,
+    grid: withAlpha(line, isDark ? 0.45 : 0.7),
+    accent,
+    areaTop: withAlpha(accent, isDark ? 0.35 : 0.25),
+    areaBottom: withAlpha(accent, 0.01),
+    label: cssVar('--panel-light', isDark ? '#13243a' : '#eaf3f7'),
+  }
+}
+
 export function TradingViewChart({
   ticks,
   chartType,
@@ -35,50 +81,39 @@ export function TradingViewChart({
   const seriesRef = useRef<ISeriesApi<'Area'> | ISeriesApi<'Line'> | null>(null)
   const onChartReadyRef = useRef(onChartReady)
   const ticksRef = useRef(ticks)
+  const chartTypeRef = useRef(chartType)
 
   useEffect(() => {
     onChartReadyRef.current = onChartReady
     ticksRef.current = ticks
   })
 
-  // 1. Initialize Chart Instance with complete TradingView layout options
+  // 1. Create the chart once; theme/grid changes are applied in place below so the
+  //    canvas is never torn down (a rebuild mid-theme-switch flashes the old colours
+  //    on mobile and loses zoom/scroll state).
   useEffect(() => {
     if (!containerRef.current) return
 
-    const bg = isDark ? '#0b1220' : '#ffffff'
-    const textColor = isDark ? '#94a3b8' : '#64748b'
-    const borderColor = isDark ? 'rgba(51, 65, 85, 0.45)' : '#e2e8f0'
-    const gridColor = isDark ? 'rgba(51, 65, 85, 0.28)' : 'rgba(226, 232, 240, 0.85)'
-    const accent = isDark ? '#2dd4bf' : '#0d9488'
+    const p = readPalette(isDark)
 
     const chart = createChart(containerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: bg },
-        textColor: textColor,
+        background: { type: ColorType.Solid, color: p.bg },
+        textColor: p.text,
         fontSize: 10,
         fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
       },
       grid: {
-        vertLines: { visible: showGrid, color: gridColor, style: LineStyle.Dotted },
-        horzLines: { visible: showGrid, color: gridColor, style: LineStyle.Dotted },
+        vertLines: { visible: showGrid, color: p.grid, style: LineStyle.Dotted },
+        horzLines: { visible: showGrid, color: p.grid, style: LineStyle.Dotted },
       },
       crosshair: {
         mode: CrosshairMode.Normal,
-        vertLine: {
-          color: accent,
-          width: 1,
-          style: LineStyle.Dashed,
-          labelBackgroundColor: isDark ? '#142238' : '#0f766e',
-        },
-        horzLine: {
-          color: accent,
-          width: 1,
-          style: LineStyle.Dashed,
-          labelBackgroundColor: isDark ? '#142238' : '#0f766e',
-        },
+        vertLine: { color: p.accent, width: 1, style: LineStyle.Dashed, labelBackgroundColor: p.accent },
+        horzLine: { color: p.accent, width: 1, style: LineStyle.Dashed, labelBackgroundColor: p.accent },
       },
       rightPriceScale: {
-        borderColor: borderColor,
+        borderColor: p.border,
         visible: true,
         autoScale: true,
         alignLabels: true,
@@ -88,7 +123,7 @@ export function TradingViewChart({
         },
       },
       timeScale: {
-        borderColor: borderColor,
+        borderColor: p.border,
         timeVisible: true,
         secondsVisible: true,
         rightOffset: 3,
@@ -112,15 +147,16 @@ export function TradingViewChart({
     onChartReadyRef.current?.(chart)
 
     // Resize Observer for responsive canvas scaling
+    const el = containerRef.current
     const ro = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        if (entry.target === containerRef.current) {
+        if (entry.target === el) {
           const { width, height } = entry.contentRect
-          chart.resize(width, height)
+          if (width > 0 && height > 0) chart.resize(width, height)
         }
       }
     })
-    ro.observe(containerRef.current)
+    ro.observe(el)
 
     return () => {
       ro.disconnect()
@@ -128,73 +164,87 @@ export function TradingViewChart({
       chartRef.current = null
       seriesRef.current = null
     }
-  }, [isDark, showGrid])
+    // Created once; later theme/grid changes go through the effects below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  // 2. Update Grid Visibility & Colors dynamically
+  // 2. Re-theme the live chart (and series) in place when the theme or grid changes
   useEffect(() => {
-    if (!chartRef.current) return
-    const gridColor = isDark ? 'rgba(51, 65, 85, 0.28)' : 'rgba(226, 232, 240, 0.85)'
-    chartRef.current.applyOptions({
+    const chart = chartRef.current
+    if (!chart) return
+    const p = readPalette(isDark)
+    chart.applyOptions({
+      layout: { background: { type: ColorType.Solid, color: p.bg }, textColor: p.text },
       grid: {
-        vertLines: { visible: showGrid, color: gridColor, style: LineStyle.Dotted },
-        horzLines: { visible: showGrid, color: gridColor, style: LineStyle.Dotted },
+        vertLines: { visible: showGrid, color: p.grid, style: LineStyle.Dotted },
+        horzLines: { visible: showGrid, color: p.grid, style: LineStyle.Dotted },
       },
+      crosshair: {
+        vertLine: { color: p.accent, labelBackgroundColor: p.accent },
+        horzLine: { color: p.accent, labelBackgroundColor: p.accent },
+      },
+      rightPriceScale: { borderColor: p.border },
+      timeScale: { borderColor: p.border },
     })
+    const series = seriesRef.current
+    if (series) {
+      const common = {
+        priceLineColor: p.accent,
+        crosshairMarkerBorderColor: p.accent,
+        crosshairMarkerBackgroundColor: p.bg,
+      }
+      if (chartTypeRef.current === 'area') {
+        series.applyOptions({
+          ...common,
+          lineColor: p.accent,
+          topColor: p.areaTop,
+          bottomColor: p.areaBottom,
+        })
+      } else {
+        series.applyOptions({ ...common, color: p.accent })
+      }
+    }
   }, [showGrid, isDark])
 
   // 3. Create or switch Series (Area vs Line)
   useEffect(() => {
     if (!chartRef.current) return
+    chartTypeRef.current = chartType
 
     if (seriesRef.current) {
       chartRef.current.removeSeries(seriesRef.current)
       seriesRef.current = null
     }
 
-    const accent = isDark ? '#2dd4bf' : '#0d9488'
+    const p = readPalette(isDark)
+    const accent = p.accent
+    const shared = {
+      lineWidth: 2 as const,
+      priceLineVisible: true,
+      priceLineColor: accent,
+      priceLineWidth: 1 as const,
+      priceLineStyle: LineStyle.Dashed,
+      lastPriceAnimation: LastPriceAnimationMode.Continuous,
+      crosshairMarkerVisible: true,
+      crosshairMarkerRadius: 4,
+      crosshairMarkerBorderColor: accent,
+      crosshairMarkerBackgroundColor: p.bg,
+      priceFormat: {
+        type: 'price' as const,
+        precision: 2,
+        minMove: 0.01,
+      },
+    }
 
     if (chartType === 'area') {
-      const area = chartRef.current.addSeries(AreaSeries, {
-        topColor: isDark ? 'rgba(45, 212, 191, 0.35)' : 'rgba(13, 148, 136, 0.25)',
-        bottomColor: isDark ? 'rgba(45, 212, 191, 0.01)' : 'rgba(13, 148, 136, 0.01)',
+      seriesRef.current = chartRef.current.addSeries(AreaSeries, {
+        ...shared,
+        topColor: p.areaTop,
+        bottomColor: p.areaBottom,
         lineColor: accent,
-        lineWidth: 2,
-        priceLineVisible: true,
-        priceLineColor: accent,
-        priceLineWidth: 1,
-        priceLineStyle: LineStyle.Dashed,
-        lastPriceAnimation: LastPriceAnimationMode.Continuous,
-        crosshairMarkerVisible: true,
-        crosshairMarkerRadius: 4,
-        crosshairMarkerBorderColor: accent,
-        crosshairMarkerBackgroundColor: isDark ? '#0b1220' : '#ffffff',
-        priceFormat: {
-          type: 'price',
-          precision: 2,
-          minMove: 0.01,
-        },
       })
-      seriesRef.current = area
     } else {
-      const line = chartRef.current.addSeries(LineSeries, {
-        color: accent,
-        lineWidth: 2,
-        priceLineVisible: true,
-        priceLineColor: accent,
-        priceLineWidth: 1,
-        priceLineStyle: LineStyle.Dashed,
-        lastPriceAnimation: LastPriceAnimationMode.Continuous,
-        crosshairMarkerVisible: true,
-        crosshairMarkerRadius: 4,
-        crosshairMarkerBorderColor: accent,
-        crosshairMarkerBackgroundColor: isDark ? '#0b1220' : '#ffffff',
-        priceFormat: {
-          type: 'price',
-          precision: 2,
-          minMove: 0.01,
-        },
-      })
-      seriesRef.current = line
+      seriesRef.current = chartRef.current.addSeries(LineSeries, { ...shared, color: accent })
     }
 
     // Set dataset immediately if available
@@ -206,7 +256,9 @@ export function TradingViewChart({
         chartRef.current.timeScale().fitContent()
       }
     }
-  }, [chartType, isDark])
+    // isDark is read for the initial palette only; re-theming is effect 2's job.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chartType])
 
   // 4. Update data on tick arrivals with strictly ascending timestamp validation
   useEffect(() => {

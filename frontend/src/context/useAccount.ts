@@ -1,5 +1,5 @@
 import { useContext } from 'react'
-import { AccountCtx } from './AccountContext'
+import { AccountCtx } from './accountCtx'
 
 export function useAccount() {
   const ctx = useContext(AccountCtx)
